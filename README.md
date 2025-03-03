@@ -91,9 +91,8 @@ info:
   version: "1.0.0"
   description: >
     A simple chat API for interacting with an AI agent.
-    The /chat endpoint accepts user messages and returns token-by-token
-    streamed responses using Server-Sent Events (SSE).
-
+    The API supports sending messages via /chat, retrieving full conversations via /conversations/{conversationId},
+    and listing all conversation IDs for the authenticated user with pagination.
 servers:
   - url: https://api.example.com
     description: Production server
@@ -136,6 +135,96 @@ paths:
       security:
         - bearerAuth: []
 
+  /conversations:
+    get:
+      summary: Retrieve a list of conversation IDs for the authenticated user.
+      operationId: getUserConversationIds
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of conversation IDs to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: nextToken
+          in: query
+          description: Token to retrieve the next page of results.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of conversation IDs for the user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  conversationIds:
+                    type: array
+                    items:
+                      type: string
+                  nextToken:
+                    type: string
+                    description: A token for retrieving the next page of results.
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /conversations/{conversationId}:
+    get:
+      summary: Retrieve all messages for a specific conversation.
+      operationId: getConversationMessages
+      parameters:
+        - name: conversationId
+          in: path
+          description: Unique identifier for the conversation.
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Maximum number of messages to return.
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: nextToken
+          in: query
+          description: Token to retrieve the next page of messages.
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A list of chat messages for the conversation with pagination details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ChatMessage'
+                  nextToken:
+                    type: string
+                    description: A token for retrieving the next page of results.
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
 components:
   schemas:
     ChatRequest:
@@ -151,10 +240,31 @@ components:
           description: The user's message.
         resumeToken:
           type: integer
-          description: >
-            Optional token to resume a previously interrupted streaming session.
+          description: Optional token to resume a previously interrupted streaming session.
       required:
         - message
+    ChatMessage:
+      type: object
+      properties:
+        conversationId:
+          type: string
+          description: Unique identifier for the conversation.
+        messageTimestamp:
+          type: number
+          description: Unix epoch timestamp (in milliseconds) when the message was created.
+        userId:
+          type: string
+          description: Identifier of the user associated with the message.
+        sender:
+          type: string
+          description: Indicates the origin of the message (e.g., "user" or "assistant").
+        content:
+          type: string
+          description: The text content or payload of the message.
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Optional additional details for the message.
     ErrorResponse:
       type: object
       properties:
