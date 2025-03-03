@@ -647,6 +647,11 @@ export async function queryUserConversations(userId: string): Promise<any[]> {
 
 The NestJS application is containerized using Docker and deployed on AWS ECS. This configuration provides session affinity at the load balancer level, ensuring a consistent experience for users while still leveraging multi-AZ deployments for high availability and scalability. Assume that environment variables will be configured as needed.
 
+- Automated Evals
+    - Eval benchmarks could be run prior to deployment, e.g. OpenAI Evals
+- Staging Environment
+    - A `staging` environment could be deployed for internal testing that requires team approval prior to deployment into `prod`
+
 ### CloudFormation Snippet
 ```yaml
 Resources:
