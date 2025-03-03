@@ -290,6 +290,7 @@ src/
       ├── chat.service.ts
       └── dto/
             └── chat-request.dto.ts
+            └──  chat-message-response.dto.ts
 ```
 
 #### src/app.module.ts
@@ -338,6 +339,24 @@ export class ChatRequest {
    * Optional token to resume a previously interrupted streaming session.
    */
   resumeToken?: number;
+}
+```
+
+#### src/chat/dto/chat-message-response.dto.ts
+```typescript
+export class ChatMessageResponseDto {
+
+  conversationId: string;
+
+  messageTimestamp: number;
+
+  userId: string;
+
+  sender: string; // e.g., 'user' or 'assistant'
+
+  content: string;
+
+  metadata?: Record<string, any>;
 }
 ```
 
